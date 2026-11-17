@@ -1,0 +1,17 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Virtual environment
+.venv/
+venv/
+
+# Counter state files written when the demo runs
+*.ctr
+
+# OS / editor files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
