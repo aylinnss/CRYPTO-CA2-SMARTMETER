@@ -24,7 +24,7 @@ The one line that differs between builds is in `src/protocol.py`, `make_meter()`
 
 * Python 3.12 or later (tested on Python 3.12.6 on Windows 11; see `results.txt`)
 * Dependencies pinned in `requirements.txt`: `cryptography==50.0.1`, `pytest==9.1.1`
-* After the dependencies are installed, everything runs offline. No absolute paths
+* After the dependencies are installed, everything runs offline. The code contains no absolute paths,
   and no keys are stored in the repository (keys are generated from the operating
   system's random number generator on every run).
 
