@@ -1,0 +1,91 @@
+Run at   : 2026-11-17 09:28
+OS       : Windows 11 (10.0.26200)
+Python   : 3.12.6
+cryptography: 50.0.1
+
+======================================================================
+Normal operation   (exit code 0)
+$ python -m src.run
+======================================================================
+boot 0  counter=1  nonce=4c475a000001e24000000001  head-end accepted RDG|kWh=0012346.0
+boot 0  counter=2  nonce=4c475a000001e24000000002  head-end accepted RDG|kWh=0012346.4
+-- power cycle --
+boot 1  counter=101  nonce=4c475a000001e24000000065  head-end accepted RDG|kWh=0012346.8
+boot 1  counter=102  nonce=4c475a000001e24000000066  head-end accepted RDG|kWh=0012347.2
+-- power cycle --
+boot 2  counter=201  nonce=4c475a000001e240000000c9  head-end accepted RDG|kWh=0012347.6
+boot 2  counter=202  nonce=4c475a000001e240000000ca  head-end accepted RDG|kWh=0012348.0
+-- power cycle --
+replay of last frame: REJECTED
+
+
+======================================================================
+Attack against FLAWED build   (exit code 0)
+$ python -m attack.attack --build flawed
+======================================================================
+=== build: FLAWED ===
+[wire] frame 1 nonce=4c475a000001e24000000001  recorded; head-end accepted (counter 1)
+[attacker] power-cycles the meter
+[wire] frame 2 nonce=4c475a000001e24000000001  recorded; head-end REJECTED
+[attacker] nonce reuse visible in headers: True
+[attacker] recovered P2 : b'ALM|TAMPER=COVER_OPEN|PWR=RESTORED|v=2'
+[harness ] true      P2 : b'ALM|TAMPER=COVER_OPEN|PWR=RESTORED|v=2'
+[result  ] CONFIDENTIALITY broken: True
+[cost    ] frames recorded=2, known plaintexts=1, attacker time=0.013 ms
+ATTACK SUCCEEDED
+
+
+======================================================================
+Attack against CORRECT build   (exit code 1)
+$ python -m attack.attack --build correct
+======================================================================
+=== build: CORRECT ===
+[wire] frame 1 nonce=4c475a000001e24000000001  recorded; head-end accepted (counter 1)
+[attacker] power-cycles the meter
+[wire] frame 2 nonce=4c475a000001e24000000065  recorded; head-end accepted (counter 101)
+[attacker] nonce reuse visible in headers: False
+[attacker] recovered P2 : b"\xe7\x1cn:\xe9\x9b\xd6\xf4<Z\xca\x93\x00\x81\xe5v\xbc\n\xc3\x12\xceDar\xd5\xc3\xcc'dX\xf1T\xef\xd5AV\x1fr"
+[harness ] true      P2 : b'ALM|TAMPER=COVER_OPEN|PWR=RESTORED|v=2'
+[result  ] CONFIDENTIALITY broken: False
+[cost    ] frames recorded=2, known plaintexts=1, attacker time=0.017 ms
+ATTACK FAILED
+
+
+======================================================================
+Test suite   (exit code 0)
+$ python -m pytest -v -p no:cacheprovider
+======================================================================
+============================= test session starts =============================
+platform win32 -- Python 3.12.6, pytest-9.1.1, pluggy-1.7.0 -- C:\Users\aylin\AppData\Local\Programs\Python\Python312\python.exe
+rootdir: C:\Users\aylin\Desktop\syber security\Cryptography Theory & Practice 1 semestre\CA 2 UNTIL 22 NOVEMBER\protocol-ca2
+collecting ... collected 26 items
+
+tests/test_protocol.py::test_gcm_vector_aes128_with_aad PASSED           [  3%]
+tests/test_protocol.py::test_gcm_vector_aes256_with_aad PASSED           [  7%]
+tests/test_protocol.py::test_hkdf_rfc5869_case1 PASSED                   [ 11%]
+tests/test_protocol.py::test_nonce_layout PASSED                         [ 15%]
+tests/test_protocol.py::test_key_separation PASSED                       [ 19%]
+tests/test_protocol.py::test_round_trip PASSED                           [ 23%]
+tests/test_protocol.py::test_bit_flip_rejected[header] PASSED            [ 26%]
+tests/test_protocol.py::test_bit_flip_rejected[ciphertext] PASSED        [ 30%]
+tests/test_protocol.py::test_bit_flip_rejected[tag] PASSED               [ 34%]
+tests/test_protocol.py::test_wrong_key_rejected PASSED                   [ 38%]
+tests/test_protocol.py::test_replay_rejected PASSED                      [ 42%]
+tests/test_protocol.py::test_reorder_rejected PASSED                     [ 46%]
+tests/test_protocol.py::test_cut_and_paste_to_other_meter_rejected PASSED [ 50%]
+tests/test_protocol.py::test_malformed_rejected[] PASSED                 [ 53%]
+tests/test_protocol.py::test_malformed_rejected[\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01] PASSED [ 57%]
+tests/test_protocol.py::test_malformed_rejected[\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01] PASSED [ 61%]
+tests/test_protocol.py::test_rejection_is_uniform PASSED                 [ 65%]
+tests/test_protocol.py::test_counter_survives_power_cycle PASSED         [ 69%]
+tests/test_protocol.py::test_head_end_state_survives_restart PASSED      [ 73%]
+tests/test_protocol.py::test_refuses_to_encrypt_if_counter_cannot_be_saved PASSED [ 76%]
+tests/test_protocol.py::test_reserve_limits_flash_writes_and_skips_on_reboot PASSED [ 80%]
+tests/test_protocol.py::test_reboot_mid_block_never_repeats PASSED       [ 84%]
+tests/test_protocol.py::test_counter_exhaustion PASSED                   [ 88%]
+tests/test_protocol.py::test_flawed_build_repeats_nonce_after_power_cycle PASSED [ 92%]
+tests/test_protocol.py::test_attack_succeeds_on_flawed_build PASSED      [ 96%]
+tests/test_protocol.py::test_attack_fails_on_correct_build PASSED        [100%]
+
+============================= 26 passed in 0.54s ==============================
+
